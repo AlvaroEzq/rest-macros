@@ -1,4 +1,12 @@
 
+/**
+ * @brief Creates a data set from a file pattern and saves it to an output file.
+ *      The data set is created with all the observables from the TRestAnalysisTree
+ *      of the first file matching the pattern.
+ * 
+ * @param filePattern The pattern of the input files to be used to create the data set.
+ * @param outputFileName The name of the output file where the data set will be saved.
+ */
 void createDataSet(std::string filePattern = "./data/R01850_*_Hits_Calibration_109Cd_Both_cronTREX_V2.3.13.root", std::string outputFileName = ""){
     
     TRestDataSet ds;
