@@ -33,17 +33,17 @@ void calibrate(const std::string& rmlFile, const std::string& dataSetToCalibrate
 
     std::vector<std::string> fileSelection = TRestTools::GetFilesMatchingPattern(rmlFile);
     for (auto& file : fileSelection) {
-        std::cout << "Sensitivity for " << file << std::endl;
+        std::cout << "TRestDataSetGainMap parameters loaded from " << file << std::endl;
 
         TRestDataSetGainMap cal(file.c_str());
         if ( TRestTools::fileExists( cal.GetOutputFileName() ) ) {
-            std::cout << "Calibration file for " << file << " exists in " << cal.GetOutputFileName() << std::endl;
+            std::cout << "\tLoading calibration from " << cal.GetOutputFileName() << std::endl;
             cal.Import(cal.GetOutputFileName());
         } else {
             cal.SetVerboseLevel( (TRestStringOutput::REST_Verbose_Level) 1); //0:essential 1: warnings, 2: info, 3: debug
             cal.GenerateGainMap();
-            std::cout << "Calibration file for " << file << " saved in " << cal.GetOutputFileName() << std::endl;
             cal.Export();
+            std::cout << "\tExported calibration file to " << cal.GetOutputFileName() << std::endl;
         }
         if ( !dataSetToCalibrate.empty() )
             cal.CalibrateDataSet(dataSetToCalibrate);
