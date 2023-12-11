@@ -73,6 +73,44 @@ void drawWithinAll(int x, int y) {
     cAll->Update(); // avoid having to hit 'enter' in the terminal to update it
 }
 
+void highlightDrawnAlonePad(const int x, const int y){
+    uint COLOR = 38; // set color here (38 es azul apagado)
+
+    // Get the number of pads inside the canvas
+    size_t nPads = 0;
+    for (const auto& object : *cAll->GetListOfPrimitives())
+        if (object->InheritsFrom(TVirtualPad::Class())) ++nPads;
+
+    size_t n_subPad = x+1 + m->GetNumberOfSegmentsX()*(m->GetNumberOfSegmentsY()-y-1);
+
+    // Reset previous highlights
+    for (size_t i = 0; i < nPads; i++) {
+        if (i == n_subPad) continue; // skip the selected pad
+        TVirtualPad *pad = (TVirtualPad*) cAll->cd(i+1);
+        if (pad->GetFillColor() != 0) { // 0 is white
+            pad->SetFillColor(0);
+            pad->Modified();
+            pad->Update();
+        }
+    }
+
+    // Highlight the selected pad
+    if (n_subPad > nPads) {
+        std::cout << "Error: the number of pads is " << nPads << " and the selected pad is " << n_subPad << std::endl;
+        return;
+    }
+    TVirtualPad *pad = (TVirtualPad*) cAll->cd(n_subPad);
+    if (pad->GetFillColor() == COLOR) return; // no need to modify it to same color
+    pad->SetFillColor(COLOR);
+    pad->Modified();
+    pad->Update();
+    /*
+    cAll->cd(n_subPad);
+    gPad->SetFillColor(kYellow);
+    gPad->Modified();
+    gPad->Update();
+    */
+}
 
 void drawAlone(const int x, const int y) {
 
@@ -126,6 +164,9 @@ void drawAlone(const int x, const int y) {
         }
     }
     cAlone->Update();
+
+    // Highlight the segment in the cAll canvas
+    highlightDrawnAlonePad(x, y);
 }
 
 void DeletePeak(const int x, const int y, const int peakNumber){
