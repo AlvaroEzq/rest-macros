@@ -365,25 +365,29 @@ void refitGainMap(std::string gainMapFile = "data/testing_Cal_D01983_Hits_Thresh
     //gm = *((TRestDataSetGainMap*)  f->Get("calRaw4x4")); 
     gm.Import(gainMapFile); // It doesnt work with gm->Import(). Why?
 
-    std::cout << "************************************************" << std::endl;
-    std::cout << "*********** REFITTING MACRO ********************" << std::endl;
-    // Resize the above messages to fit this new scheme
-    std::cout << "* This macro is meant to be used with the FIT  *" << std::endl;
-    std::cout << "* PANEL. To proper use it, open the FIT PANEL  *" << std::endl;
-    std::cout << "* in the Tools menu of the small canvas. Once  *" << std::endl;
-    std::cout << "* in the fit panel, select the fit type        *" << std::endl;
-    std::cout << "* 'Prev. Fit and fit function named            *" << std::endl;
-    std::cout << "*'g'+peak number (in energy descending order   *" << std::endl;
-    std::cout << "* starting at 0). For example                  *" << std::endl;
-    std::cout << "* g0 is 22.5keV and g1 is 8.0keV. It is        *" << std::endl;
-    std::cout << "* important to check the option 'Add to list'  *" << std::endl;
-    std::cout << "* in the FIT PANEL (the draw option 'SAME' is  *" << std::endl;
-    std::cout << "* optional but it can be helpful)              *" << std::endl;
-    std::cout << "* After fitting with the fit panel, click on   *" << std::endl;
-    std::cout << "* the button 'UpdateFits' to update the fits   *" << std::endl;
-    std::cout << "* in the canvas and the calibration curve of   *" << std::endl;
-    std::cout << "* that segment.                                *" << std::endl;
-    std::cout << "************************************************" << std::endl;
+    std::cout << std::endl;
+    std::cout << " ************************************************" << std::endl;
+    std::cout << " *************** REFITTING MACRO ****************" << std::endl;
+    std::cout << " * This macro is meant to be used with the FIT  *" << std::endl;
+    std::cout << " * PANEL. To proper use it, open the FIT PANEL  *" << std::endl;
+    std::cout << " * in the Tools menu of the small canvas. Once  *" << std::endl;
+    std::cout << " * in the fit panel, select the fit type        *" << std::endl;
+    std::cout << " * 'Prev. Fit' and fit function named           *" << std::endl;
+    std::cout << " * 'g'+peak number (in energy descending order  *" << std::endl;
+    std::cout << " * starting at 0). For example:                 *" << std::endl;
+    std::cout << " * - g0 is 22.5keV                              *" << std::endl;
+    std::cout << " * - g1 is 8.0keV                               *" << std::endl;
+    std::cout << " *                                              *" << std::endl;
+    std::cout << " * It's important to check option 'Add to list' *" << std::endl;
+    std::cout << " * in the FIT PANEL (the draw option 'SAME' is  *" << std::endl;
+    std::cout << " * optional but it can be helpful).             *" << std::endl;
+    std::cout << " *                                              *" << std::endl;
+    std::cout << " * After fitting with the fit panel, click on   *" << std::endl;
+    std::cout << " * the button 'UpdateFits' to update the fits   *" << std::endl;
+    std::cout << " * in the canvas and the calibration curve of   *" << std::endl;
+    std::cout << " * that segment.                                *" << std::endl;
+    std::cout << " ************************************************" << std::endl;
+    std::cout << std::endl;
 
     auto dialog = createDialog();
 
