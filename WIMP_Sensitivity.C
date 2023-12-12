@@ -4,8 +4,38 @@
 #include <TRestWimpUtils.h>
 #include <chrono>
 
+
+std::vector<double> logSpacedVector(double start, double end, uint numPoints, bool includeEnd = false) {
+    std::vector<double> result;
+    result.reserve(includeEnd ? numPoints+1 : numPoints);
+
+    double logStart = std::log10(start);
+    double logEnd = std::log10(end);
+    double step = (logEnd - logStart) / numPoints;
+    for (int i = 0; i < (includeEnd ? numPoints+1 : numPoints); ++i) {
+        double value = std::pow(10, logStart + i * step);
+        result.push_back(value);
+    }
+
+    return result;
+}
+
+std::vector<double> linearSpacedVector(double start, double end, uint numPoints, bool includeEnd = false) {
+    std::vector<double> result;
+    result.reserve(includeEnd ? numPoints+1 : numPoints);
+
+    double step = (end - start) / numPoints;
+    for (int i = 0; i < (includeEnd ? numPoints+1 : numPoints); ++i) {
+        double value = start + i * step;
+        result.push_back(value);
+    }
+
+    return result;
+}
+
 void WIMP_Sensitivity(const std::string& rmlFile, const double wimpStart = 0.01,
-                           const double wimpEnd = 50, const double wimpStep = 0.1) {
+                           const double wimpEnd = 50, const int numPoints = 250,
+                           const bool useLogScale = true) {
 
     std::vector<std::string> fileSelection = TRestTools::GetFilesMatchingPattern(rmlFile);
     for (auto& file : fileSelection) {
@@ -22,16 +52,34 @@ void WIMP_Sensitivity(const std::string& rmlFile, const double wimpStart = 0.01,
             return;
         }
 
+        for (auto n : WS.GetNuclei()) {
+            ofs << "# Nuclei name: " << n.fNucleusName.Data() << "\n";
+            ofs << "# Atomic number: " << n.fAnum << "\n";
+            ofs << "# Number of protons: " << n.fZnum << "\n";
+            ofs << "# Abundance: " << n.fAbundance << "\n";
+            ofs << "#\n";
+        }
+        ofs << "# WimpDensity: " << WS.GetWimpDensity() << " GeV/cm3" << "\n";
+        ofs << "# VLab: " << WS.GetLabVelocity() << " km/s\n# VRMS: " << WS.GetRmsVelocity()
+                    << " km/s\n# VEscape: " << WS.GetEscapeVelocity() << " km/s" << "\n";
+        ofs << "# Exposure: " << WS.GetExposure() << " kg*day" << "\n";
+        ofs << "# Background Level: " << WS.GetBackground() << " c/keV/day" << "\n";
+        ofs << "# Recoil energy range: (" << WS.GetEnergySpectra().X() << ", " << WS.GetEnergySpectra().Y()
+                    << ") keV\n# Step: " << WS.GetEnergySpectraStep() << " keV" << "\n";
+        ofs << "# Sensitivity energy range: (" << WS.GetEnergyRange().X() << ", " << WS.GetEnergyRange().Y() << ") keV"
+                    << "\n";
+        ofs << "# Use quenching factor: " << (WS.GetUseQuenchingFactor() ? "true" : "false") << "\n";
+
         std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 
         const double vMax = WS.GetEscapeVelocity() + WS.GetLabVelocity();
-        double step = wimpStep;
-        for (double wimpMass = wimpStart; wimpMass <= wimpEnd; wimpMass += step) {
-            if (wimpMass < 0.1) step = wimpStep /100;
-            if (0.1 <= wimpMass &&wimpMass < 1) step = wimpStep /10;
-            if (1 <= wimpMass && wimpMass < 10) step = wimpStep;
-            if ( 9.999 <= wimpMass ) step = wimpStep*10;
 
+        std::vector<double> wimpMasses;
+        if (useLogScale)
+            wimpMasses = logSpacedVector(wimpStart, wimpEnd, numPoints, true);
+        else
+            wimpMasses= linearSpacedVector(wimpStart, wimpEnd, numPoints, true);
+        for (double wimpMass : wimpMasses) {
             const double sens = WS.GetSensitivity(wimpMass);
 
             if (sens > 0) {
