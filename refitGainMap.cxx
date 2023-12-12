@@ -35,13 +35,30 @@ TRestDataSetGainMap gm;
 TRestDataSetGainMap::Module *m = nullptr;
 std::map<std::string,double> meansAux={};//to store the previous fit means (for add peak functionality)
 
-int screenWidth = gClient->GetDisplayWidth();
-int screenHeight = gClient->GetDisplayHeight();
+const int screenWidth = gClient->GetDisplayWidth();
+const int screenHeight = gClient->GetDisplayHeight();
 
-TCanvas *cAll = new TCanvas("cAll","cAll", 0.5*screenWidth, 0.7*screenHeight);
-TCanvas *cAlone = new TCanvas("cAlone","cAlone", 0.3*screenWidth, 0.45*screenHeight);
+const int cAllWidth = 0.5*screenWidth;
+const int cAllHeight = 0.7*screenHeight;
+const int cAloneWidth = 0.3*screenWidth;
+const int cAloneHeight = 0.45*screenHeight;
 
+TCanvas *cAll = new TCanvas("cAll","cAll", cAllWidth, cAllHeight);
+TCanvas *cAlone = new TCanvas("cAlone","cAlone", cAloneWidth, cAloneHeight);
 
+// Functions declarations
+void drawAll();
+void drawAlone(const int x, const int y);
+void drawWithinAll(int x, int y);
+void clearCanvas(TCanvas *c, size_t n_subPad);
+void highlightDrawnAlonePad(const int x, const int y);
+void DeletePeak(const int x, const int y, const int peakNumber);
+void AddPeak(const int x, const int y, const int peakNumber);
+void UpdateFits(const int x, const int y);
+void changeModule(int plane, int module);
+TDialogCanvas* createDialog();
+
+// Functions definitions
 void clearCanvas(TCanvas *c, size_t n_subPad = 0) {
     c->cd(n_subPad);
     if (n_subPad == 0) {
@@ -64,7 +81,7 @@ void drawWithinAll(int x, int y) {
     if (cAll->GetCanvasImp()){
         clearCanvas(cAll, nSubPad);
     } else {// if it has been closed
-        cAll = new TCanvas("cAll","cAll",900,700);
+        cAll = new TCanvas("cAll","cAll", cAllWidth, cAllHeight);
         cAll->Divide(m->GetNumberOfSegmentsX(), m->GetNumberOfSegmentsY());
     }
     cAll->cd(nSubPad);
@@ -75,45 +92,6 @@ void drawWithinAll(int x, int y) {
     TButton *but = new TButton("Draw alone", action.c_str(), .5,.8,.8,.88);
     but->Draw();
     cAll->Update(); // avoid having to hit 'enter' in the terminal to update it
-}
-
-void highlightDrawnAlonePad(const int x, const int y){
-    uint COLOR = 38; // set color here (38 es azul apagado)
-
-    // Get the number of pads inside the canvas
-    size_t nPads = 0;
-    for (const auto& object : *cAll->GetListOfPrimitives())
-        if (object->InheritsFrom(TVirtualPad::Class())) ++nPads;
-
-    size_t n_subPad = x+1 + m->GetNumberOfSegmentsX()*(m->GetNumberOfSegmentsY()-y-1);
-
-    // Reset previous highlights
-    for (size_t i = 0; i < nPads; i++) {
-        if (i == n_subPad) continue; // skip the selected pad
-        TVirtualPad *pad = (TVirtualPad*) cAll->cd(i+1);
-        if (pad->GetFillColor() != 0) { // 0 is white
-            pad->SetFillColor(0);
-            pad->Modified();
-            pad->Update();
-        }
-    }
-
-    // Highlight the selected pad
-    if (n_subPad > nPads) {
-        std::cout << "Error: the number of pads is " << nPads << " and the selected pad is " << n_subPad << std::endl;
-        return;
-    }
-    TVirtualPad *pad = (TVirtualPad*) cAll->cd(n_subPad);
-    if (pad->GetFillColor() == COLOR) return; // no need to modify it to same color
-    pad->SetFillColor(COLOR);
-    pad->Modified();
-    pad->Update();
-    /*
-    cAll->cd(n_subPad);
-    gPad->SetFillColor(kYellow);
-    gPad->Modified();
-    gPad->Update();
-    */
 }
 
 void drawAlone(const int x, const int y) {
@@ -129,7 +107,7 @@ void drawAlone(const int x, const int y) {
     if (cAlone->GetCanvasImp()){
         clearCanvas(cAlone);
     } else // if it has been closed
-        cAlone = new TCanvas("cAlone","cAlone",800,600);
+        cAlone = new TCanvas("cAlone","cAlone", cAloneWidth, cAloneHeight);
     
     cAlone->cd();
     std::string canvasTitle = "hSpc_" + std::to_string(m->GetPlaneId()) 
@@ -171,6 +149,45 @@ void drawAlone(const int x, const int y) {
 
     // Highlight the segment in the cAll canvas
     highlightDrawnAlonePad(x, y);
+}
+
+void highlightDrawnAlonePad(const int x, const int y){
+    uint COLOR = 38; // set color here (38 es azul apagado)
+
+    // Get the number of pads inside the canvas
+    size_t nPads = 0;
+    for (const auto& object : *cAll->GetListOfPrimitives())
+        if (object->InheritsFrom(TVirtualPad::Class())) ++nPads;
+
+    size_t n_subPad = x+1 + m->GetNumberOfSegmentsX()*(m->GetNumberOfSegmentsY()-y-1);
+
+    // Reset previous highlights
+    for (size_t i = 0; i < nPads; i++) {
+        if (i == n_subPad) continue; // skip the selected pad
+        TVirtualPad *pad = (TVirtualPad*) cAll->cd(i+1);
+        if (pad->GetFillColor() != 0) { // 0 is white
+            pad->SetFillColor(0);
+            pad->Modified();
+            pad->Update();
+        }
+    }
+
+    // Highlight the selected pad
+    if (n_subPad > nPads) {
+        std::cout << "Error: the number of pads is " << nPads << " and the selected pad is " << n_subPad << std::endl;
+        return;
+    }
+    TVirtualPad *pad = (TVirtualPad*) cAll->cd(n_subPad);
+    if (pad->GetFillColor() == COLOR) return; // no need to modify it to same color
+    pad->SetFillColor(COLOR);
+    pad->Modified();
+    pad->Update();
+    /*
+    cAll->cd(n_subPad);
+    gPad->SetFillColor(kYellow);
+    gPad->Modified();
+    gPad->Update();
+    */
 }
 
 void DeletePeak(const int x, const int y, const int peakNumber){
@@ -235,6 +252,8 @@ void UpdateFits(const int x, const int y){
     drawAlone(x,y); // Update the canvas alone. Done after drawWithinAll to highlight the pad at cAll
     
     // --- PRINT INFO ---
+    std::cout << std::endl;
+    std::cout << "Segment " << x << ", " << y << std::endl;
     // print all the functions of the histogram
     for (TObject *obj : *h->GetListOfFunctions()) {
         if (obj && obj->InheritsFrom(TF1::Class())) {
