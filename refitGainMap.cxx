@@ -51,6 +51,7 @@ void clearCanvas(TCanvas *c, size_t n_subPad = 0) {
                         // See https://root.cern/doc/master/TH1_8cxx_source.html#l03068
     } else {
         TPad *subpad = (TPad*) c->GetPad(n_subPad); // Get the pointer to the subpad
+        subpad->SetFillColor(0); // if not, after updateFits, the pad (inside frame) will be highlighted
         subpad->GetListOfPrimitives()->Clear();
         subpad->Modified();
         subpad->Range(0,0,1,1); // to trick the canvas to ignore "same" drawing option. 
@@ -183,8 +184,8 @@ void DeletePeak(const int x, const int y, const int peakNumber){
         gr->RemovePoint(peakNumber); // unnecessary as UpdateCalibrationFits will remove it
     }
     
-    drawAlone(x,y); // Update the canvas alone
     drawWithinAll(x,y); // Update the canvas with all the segments
+    drawAlone(x,y); // Update the canvas alone
 }
 
 void AddPeak(const int x, const int y, const int peakNumber){
@@ -196,8 +197,8 @@ void AddPeak(const int x, const int y, const int peakNumber){
     //h->GetListOfFunctions()->Add(g); //already added by fitting with options '+'
     //UpdateCalibrationFit(x, y, peakNumber, g->GetParameter(1));
     
-    drawAlone(x,y); // Update the canvas alone
     drawWithinAll(x,y); // Update the canvas with all the segments
+    drawAlone(x,y); // Update the canvas alone
 }
 
 void UpdateFits(const int x, const int y){
@@ -230,8 +231,8 @@ void UpdateFits(const int x, const int y){
             m->UpdateCalibrationFits(x, y);
     }
     //cAlone->Modified();
-    drawAlone(x,y); // Update the canvas alone
     drawWithinAll(x,y); // Update the canvas with all the segments
+    drawAlone(x,y); // Update the canvas alone. Done after drawWithinAll to highlight the pad at cAll
     
     // --- PRINT INFO ---
     // print all the functions of the histogram
@@ -297,6 +298,14 @@ void changeModule(int plane, int module){
     }
     m = gm.GetModule(plane,module);
     if(!m) return;
+
+    // Reset the canvas cAlone
+    if (cAlone->GetCanvasImp()){
+        clearCanvas(cAlone);
+        cAlone->SetTitle("cAlone");
+        cAlone->Update();
+    }
+
     drawAll();
     cAll->SetTitle(((std::string)"Plane " + std::to_string(plane) + (std::string)", Module " + std::to_string(module)).c_str());
     cAll->Update();
